@@ -15,7 +15,7 @@ const HomeStack = createStackNavigator({
 });
 
 HomeStack.navigationOptions = {
-	tabBarLabel: 'Photo',
+	tabBarLabel: 'View',
 	tabBarIcon: ({ focused }) => (
 		<TabBarIcon
 			focused={focused}
@@ -29,11 +29,12 @@ HomeStack.navigationOptions = {
 };
 
 const LinksStack = createStackNavigator({
-	Links: LinksScreen
+	Snap: LinksScreen
 });
 
 LinksStack.navigationOptions = {
-	tabBarLabel: 'Links',
+	header: null,
+	tabBarLabel: 'Snap',
 	tabBarIcon: ({ focused }) => (
 		<TabBarIcon
 			focused={focused}
@@ -51,6 +52,7 @@ const SettingsStack = createStackNavigator({
 });
 
 SettingsStack.navigationOptions = {
+	header: null,
 	tabBarLabel: 'Settings',
 	tabBarIcon: ({ focused }) => (
 		<TabBarIcon

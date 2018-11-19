@@ -8,75 +8,78 @@ import {
 	TouchableOpacity,
 	View
 } from 'react-native';
-import { WebBrowser } from 'expo';
+import { WebBrowser, MapView, Location, Permissions } from 'expo';
+import { Marker } from 'react-native-maps';
+import Fire from '../Fire';
 
 import { MonoText } from '../components/StyledText';
+
+console.disableYellowBox = true;
 
 export default class HomeScreen extends React.Component {
 	static navigationOptions = {
 		header: null
 	};
 
+	constructor(props) {
+		super(props);
+		this.state = {
+			pins: [],
+			region: {
+				latitude: 37.78825,
+				longitude: -122.4324,
+				latitudeDelta: 0.0922,
+				longitudeDelta: 0.0421
+			}
+		};
+	}
+
+	async getLocation() {
+		let { status } = await Permissions.askAsync(Permissions.LOCATION);
+		if (status !== 'granted') return;
+		return await Location.getCurrentPositionAsync({});
+	}
+
+	componentWillMount = async () => {
+		const rawPins = await Fire.shared.getPins();
+		let pins = [];
+		for (pin of rawPins) {
+			pins.push(pin.data());
+		}
+		this.setState({ pins });
+	};
+
+	componentDidMount = async () => {
+		const location = await this.getLocation();
+		const { latitude, longitude } = location.coords;
+		const region = {
+			latitude,
+			longitude,
+			latitudeDelta: 0.0922,
+			longitudeDelta: 0.0421
+		};
+		this.onRegionChange(region);
+	};
+
 	render() {
 		return (
-			<View style={styles.container}>
-				<ScrollView
-					style={styles.container}
-					contentContainerStyle={styles.contentContainer}
-				>
-					<View style={styles.welcomeContainer}>
-						<Image
-							source={
-								__DEV__
-									? require('../assets/images/robot-dev.png')
-									: require('../assets/images/robot-prod.png')
-							}
-							style={styles.welcomeImage}
-						/>
-					</View>
-
-					<View style={styles.getStartedContainer}>
-						{this._maybeRenderDevelopmentModeWarning()}
-
-						<Text style={styles.getStartedText}>Get started by opening</Text>
-
-						<View
-							style={[styles.codeHighlightContainer, styles.homeScreenFilename]}
-						>
-							<MonoText style={styles.codeHighlightText}>
-								screens/HomeScreen.js
-							</MonoText>
-						</View>
-
-						<Text style={styles.getStartedText}>Welcome to ViewShare!</Text>
-					</View>
-
-					<View style={styles.helpContainer}>
-						<TouchableOpacity
-							onPress={this._handleHelpPress}
-							style={styles.helpLink}
-						>
-							<Text style={styles.helpLinkText}>
-								Help, it didn’t automatically reload!
-							</Text>
-						</TouchableOpacity>
-					</View>
-				</ScrollView>
-
-				<View style={styles.tabBarInfoContainer}>
-					<Text style={styles.tabBarInfoText}>
-						This is a tab bar. You can edit it in:
-					</Text>
-
-					<View
-						style={[styles.codeHighlightContainer, styles.navigationFilename]}
-					>
-						<MonoText style={styles.codeHighlightText}>
-							navigation/MainTabNavigator.js
-						</MonoText>
-					</View>
-				</View>
-			</View>
+			<MapView
+				style={{ flex: 1 }}
+				initialRegion={{
+					latitude: 40.3502181,
+					latitudeDelta: 0.04,
+					longitude: -74.6529363,
+					longitudeDelta: 0.03
+				}}
+			>
+				{this.state.pins.map(pin => (
+					<Marker
+						title={pin.title}
+						description={pin.comments}
+						coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
+					/>
+				))}
+			</MapView>
 		);
 	}
 
